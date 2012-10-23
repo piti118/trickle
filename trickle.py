@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from subprocess import check_output,call,STDOUT
 from argparse import ArgumentParser
 from time import sleep
@@ -32,10 +33,13 @@ def getNque(que):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('jobfiles',nargs='+')
-    parser.add_argument('--simulate',action="store_true")
-    parser.add_argument('-n','--maxque',type=int,default=1000)
-    parser.add_argument('-q','--que',default='')
+    parser.add_argument('jobfiles',nargs='+',help='job files')
+    parser.add_argument('--simulate',action="store_true",
+        help='turn on simulation mode')
+    parser.add_argument('-n','--maxque',type=int,default=1000,
+        help='execute commands only if the que has less than this job in que')
+    parser.add_argument('-q','--que',default='',
+        help='que name to determine the job in the que. If not specified, it used the sum of all que')
     args = parser.parse_args()
     jobs = []
     for jobfile in args.jobfiles:
