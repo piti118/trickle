@@ -5,13 +5,13 @@ from time import sleep
 import sys
 #check the que making sure there are less than
 #n jobs enqueued in the que before excute next commnad
-def trickle(jobs, n=1000, nsub=100, simulate=False, que=''):
+def trickle(jobs, n=1000, nsub=100, simulate=False, que='', run=False):
     shouldcheck = True
     njobs = len(jobs)
     for ijob,job in enumerate(jobs):
         nque = n+1
         while shouldcheck:
-            nque = getNque(que)
+            nque = getNque(que,run)
             if nque > n:
                 print 'Too many jobs in que(%d) sleep for 1 min %d/%d'%(nque,ijob,njobs)
                 sys.stdout.flush()
@@ -24,11 +24,16 @@ def trickle(jobs, n=1000, nsub=100, simulate=False, que=''):
         shouldcheck = ijob%10==9
 
 
-def getNque(que):
+def getNque(que,run=False):
     cmd = 'qstat -q %s'%que
     out = check_output(cmd, shell=True)
     tmp = out.split('\n')[-2]
-    return int(tmp.split()[1])
+    ret = 0
+    if not run:
+        ret = int(tmp.split()[1])
+    else:
+        ret = int(tmp.split()[0])
+    return ret
 
 
 def main():
@@ -40,13 +45,15 @@ def main():
         help='execute commands only if the que has less than this job in que')
     parser.add_argument('-q','--que',default='',
         help='que name to determine the job in the que. If not specified, it used the sum of all que')
+    parser.add_argument('-r','--run',action='store_true',
+        help='check the number of running jobs instead of job in que')
     args = parser.parse_args()
     jobs = []
     for jobfile in args.jobfiles:
         with open(jobfile) as f:
             jobs += f.readlines()
     jobs = [j for j in jobs if not j.strip().startswith('#')]
-    trickle(jobs, n=args.maxque, simulate=args.simulate, que=args.que)
+    trickle(jobs, n=args.maxque, simulate=args.simulate, que=args.que, run=args.run)
 
 
 if __name__ == "__main__":
